@@ -196,3 +196,4 @@ cython_debug/
 # Data stores
 data/
 catboost_info/
+images/
