@@ -6,11 +6,16 @@ from src.utils.logger import setup_logger
 loader_logger = setup_logger("hydro_atlas_loader", log_file="logs/data_loader.log")
 
 
-def load_static_data(valid_gauges: list[str]) -> pd.DataFrame:
+def load_static_data(valid_gauges: list[str], path_prefix: str | None) -> pd.DataFrame:
     """Load and filter static data for valid gauges."""
-    static_data = pd.read_csv(
-        "data/Geometry/static_data.csv", dtype={"gauge_id": str}, index_col="gauge_id"
-    )
+    if path_prefix is None:
+        static_data = pd.read_csv(
+            "data/Geometry/static_data.csv", dtype={"gauge_id": str}, index_col="gauge_id"
+        )
+    else:
+        static_data = pd.read_csv(
+            f"{path_prefix}/data/Geometry/static_data.csv", dtype={"gauge_id": str}, index_col="gauge_id"
+        )
     return static_data.loc[valid_gauges, :]
 
 

@@ -17,7 +17,7 @@ warnings.filterwarnings("ignore")
 limit_optuna_logging()
 logger = setup_logger(
     name="catboost_loader",
-    log_file="logs/notebooks/catboost.log",
+    log_file="logs/catboost.log",
     log_level="INFO",
 )
 

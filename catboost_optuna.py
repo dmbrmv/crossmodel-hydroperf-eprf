@@ -23,7 +23,6 @@ from src.models.catboost.data_loaders import (
     get_feature_lists,
     round_static_features,
     save_catboost_model,
-    split_gauges,
 )
 from src.models.catboost.optimizer import catboost_objective, limit_optuna_logging
 from src.readers.geo_char_reader import (
@@ -169,18 +168,17 @@ def train_catboost_for_dataset(
 
 def main() -> None:
     """Main function to orchestrate CatBoost training and optimization."""
-    e_obs_ws, _ = load_geodata()
+    e_obs_ws, _ = load_geodata(folder_depth=".")
     logger.info("Finding gauges with valid data...")
     full_gauges, partial_gauges = find_valid_gauges(e_obs_ws, Path("data/HydroFiles"))
-    static_data = load_static_data(full_gauges + partial_gauges)
+    static_data = load_static_data(full_gauges + partial_gauges, path_prefix=None)
     combined_feature, combined_features_df = get_combined_features(static_data)
-    train_gauges, test_gauges = split_gauges(full_gauges)
 
     for meteo_dataset in METEO_DATASETS:
         train_catboost_for_dataset(
             meteo_dataset,
-            train_gauges,
-            test_gauges,
+            full_gauges,
+            full_gauges,
             combined_feature,
             combined_features_df,
         )
