@@ -39,6 +39,8 @@ See [Installation Guide](docs/installation.md) for detailed setup instructions.
 
 ## Quick Start
 
+Option A: Python virtual environment
+
 1. Create and activate a Python 3.10+ environment:
 
    ```bash
@@ -46,21 +48,43 @@ See [Installation Guide](docs/installation.md) for detailed setup instructions.
    source .venv/bin/activate
    ```
 
-2. Install dependencies:
+Option B: Conda environment (recommended for geospatial dependencies)
+
+```bash
+conda env create -f geo_env.yml
+conda activate Geo
+```
+
+1. Install Python dependencies:
 
    ```bash
+   pip install --upgrade pip
    pip install -r requirements.txt
    ```
 
-3. Prepare data directories under `data/` as described in the Installation Guide.
+1. Prepare data directories under `data/` as described in the [Installation Guide](docs/installation.md).
 
-4. Run the CatBoost optimization script:
+1. Run model optimization scripts:
+
+   - **CatBoost**:
+
+     ```bash
+     python catboost_optuna.py
+     ```
+
+   - **GR4J**:
+
+     ```bash
+     python gr4j_optuna.py
+     ```
+
+1. (Optional) Execute additional model workflows as they become available (LSTM, HBV96, ParFlow).
+
+1. Explore results and visualizations in Jupyter notebooks under `notebooks/`:
 
    ```bash
-   python catboost_optuna.py
+   jupyter lab notebooks/
    ```
-
-5. Explore results in notebooks under `notebooks/`.
 
 ## Models
 
@@ -72,6 +96,7 @@ See [Installation Guide](docs/installation.md) for detailed setup instructions.
 
 ## Publication
 
+- **New**: The latest CatBoost model, trained on an expanded dataset of 302 basins, achieves a median Nash-Sutcliffe Efficiency (NSE) of 0.82 on the test set.
 - Comprehensive comparison of four meteorological input data sources (E-OBS, ERA5-Land, MSWEP, interpolated station) across five modeling frameworks (CatBoost, LSTM, GR4J, HBV96, ParFlow).
 - ERA5-Land yields the highest Nash–Sutcliffe Efficiency (NSE) for machine learning models; MSWEP excels for conceptual models.
 - Interpolated station data shows strengths in snow-dominated catchments, highlighting catchment-specific sensitivities.
