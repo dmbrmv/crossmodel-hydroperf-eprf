@@ -23,6 +23,7 @@ HydroEPRF (Hydrological Ensemble Prediction Research Framework) is a modular, ex
 ├── logs/                     # Log files
 ├── notebooks/                # Exploratory and tutorial notebooks
 ├── src/                      # Core library modules
+│   ├── loaders/              # Data download utilities for meteorological and soil data
 │   ├── models/               # Model implementations and utilities
 │   │   ├── catboost/         # CatBoost data loaders and optimizer
 │   │   └── ...               # Future models: lstm, hbv96, parflow
@@ -85,6 +86,121 @@ conda activate Geo
    ```bash
    jupyter lab notebooks/
    ```
+
+## Data Download
+
+The framework requires several datasets for full functionality which can be downloaded using the provided utilities:
+
+### Meteorological Data (ERA5-Land)
+
+```bash
+# Download ERA5-Land meteorological data for a specific region and period
+python -m src.loaders.load_era5_land
+```
+
+This will download ERA5-Land data for variables like radiation, temperature, pressure and wind components for the specified area of interest.
+
+### Soil Data (SoilGrids)
+
+```bash
+# Download SoilGrids data for model training and inference
+python -m src.loaders.load_soil_grids --aoi 70.0 10.0 42.0 45.0
+```
+
+Alternatively, use the Jupyter notebook for interactive processing:
+
+```bash
+# Execute the staticMaps notebook to fetch and reproject SoilGrids layers
+jupyter notebook notebooks/staticMaps.ipynb
+```
+
+### Discharge Data
+
+Prepare discharge observation data:
+
+```bash
+# Create required directories
+mkdir -p data/AISxls/discharge_csv
+
+# Add your discharge observation CSV files here
+```
+
+## Sample Scripts
+
+After data preparation, run the following example workflows:
+
+### CatBoost Machine Learning Model
+
+```bash
+# Run CatBoost optimization with Optuna 
+python catboost_optuna.py
+```
+
+### GR4J Hydrological Model
+
+```bash
+# Run GR4J parameter optimization 
+python gr4j_optuna.py
+```
+
+### Interactive Notebooks
+
+Explore pre-built Jupyter notebooks for data analysis and visualization:
+
+```bash
+# Launch notebook server
+jupyter lab notebooks/
+
+# Key notebooks:
+# - staticMaps.ipynb: Download and process static catchment features
+# - MeteoPreparation.ipynb: Prepare meteorological data
+# - gr4jModel.ipynb: Explore GR4J model setup and results
+# - catboostModel.ipynb: Explore machine learning model results
+```
+
+## Data Loaders
+
+The `src.loaders` module provides utilities for acquiring and processing input data:
+
+### ERA5-Land Loader
+
+Downloads meteorological data from the ERA5-Land reanalysis dataset:
+
+- Automatic download of variables like radiation, temperature, wind components
+- Configurable spatial extent and time period
+- Asynchronous processing for efficient data retrieval
+- Built-in error handling and logging
+
+Example usage:
+
+```python
+from src.meteo.era5_land_loader import download_era
+
+await download_era(
+    start_date="2007-01-01", 
+    last_date="2022-12-31",
+    save_path="data/MeteoData", 
+    meteo_variables=["2m_temperature", "total_precipitation"],
+    data_extent=[70.0, 20.0, 42.0, 45.0],  # [N, W, S, E]
+    max_concurrent_downloads=6
+)
+```
+
+### SoilGrids Loader
+
+Downloads and reprojects soil property data from SoilGrids:
+
+- Support for standard soil properties (bulk density, clay content, pH, etc.)
+- Automatic handling of CRS transformations from Homolosine to WGS84
+- Multi-threaded download and processing
+- Configurable depth layers and statistics
+
+The SoilGrids data provides crucial static catchment features for hydrological modeling. The loader handles the complex CRS transformations and efficient data retrieval from the global dataset.
+
+```python
+# Command line usage
+python -m src.loaders.load_soil_grids --aoi 70.0 10.0 42.0 45.0 --res_folder data/SpatialData/SoilGrids
+```
 
 ## Models
 
