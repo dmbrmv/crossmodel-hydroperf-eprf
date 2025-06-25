@@ -1,6 +1,7 @@
 """Parallelization utilities for GR4J Optuna optimization."""
 
 import multiprocessing as mp
+from concurrent.futures import ProcessPoolExecutor
 from functools import partial
 from pathlib import Path
 
@@ -36,8 +37,8 @@ def run_parallel_optimization(
     n_processes = max(1, min(n_processes, mp.cpu_count()))
     logger.info(f"Starting parallel optimization with {n_processes} processes")
     process_func = partial(process_gauge_func, **kwargs)
-    with mp.Pool(processes=n_processes) as pool:
-        pool.map(process_func, gauge_ids)
+    with ProcessPoolExecutor(max_workers=n_processes) as executor:
+        list(executor.map(process_func, gauge_ids))
     logger.info("Parallel optimization completed")
 
 
