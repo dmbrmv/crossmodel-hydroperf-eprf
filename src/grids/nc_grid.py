@@ -10,11 +10,9 @@ This module provides functions for:
 """
 
 import math
-from concurrent.futures import ProcessPoolExecutor, as_completed
 from functools import lru_cache
 from itertools import product
 from pathlib import Path
-import os
 
 import geopandas as gpd
 import numpy as np
@@ -190,7 +188,6 @@ def get_weights(
     ws_geom: Polygon,
     ws_area: float,
     grid_res: float = 0.05,
-    n_workers: int | None = None,
 ) -> xr.DataArray:
     """Calculate weights for a given watershed and grid resolution.
 
@@ -218,8 +215,8 @@ def get_weights(
         weights = xr.open_dataarray(weight_path)
         return weights
 
-    # Watershed geometry
-    ws_shape = poly_from_multipoly(ws_geom)
+    # Watershed boundaries geometry as geodataframe
+    ws_gdf = create_gdf(ws_geom)
 
     # Get lat, lon which help define area for intersection
     nc_lat, nc_lon = mask_nc.lat.values, mask_nc.lon.values
@@ -230,34 +227,26 @@ def get_weights(
     weights_data = np.zeros(grid_shape, dtype=np.float64)
 
     # Vectorized approach using list comprehension with enumerate for direct indexing
-    lat_lon_combinations = [
-        (i, j, float(lat), float(lon))
-        for i, lat in enumerate(nc_lat)
-        for j, lon in enumerate(nc_lon)
-    ]
+    lat_lon_combinations = list(product(enumerate(nc_lat), enumerate(nc_lon)))
 
-    if n_workers is None:
-        n_workers = max(1, os.cpu_count() - 1)
-
-    def _process_cell(args: tuple[int, int, float, float]) -> tuple[int, int, bool, float]:
-        i, j, lat, lon = args
+    # Process intersections in batches to reduce memory overhead
+    for (i, lat), (j, lon) in lat_lon_combinations:
         try:
-            cell = Polygon(get_square_vertices(mm=(lon, lat), h=grid_res, phi=0))
-            intersection = ws_shape.intersection(cell)
-            if not intersection.is_empty:
-                weight = polygon_area(poly_from_multipoly(intersection)) / ws_area
-                return i, j, True, weight
-        except Exception as exc:  # pragma: no cover - logging only
-            logging.exception(f"Error processing cell lat={lat}, lon={lon}: {exc}")
-        return i, j, False, 0.0
+            # Create polygon for current grid cell
+            polygon_gdf = create_gdf(Polygon(get_square_vertices(mm=(lon, lat), h=grid_res, phi=0)))
+            # Calculate intersection
+            intersection = gpd.overlay(df1=ws_gdf, df2=polygon_gdf, how="intersection")
 
-    with ProcessPoolExecutor(max_workers=n_workers) as executor:
-        futures = [executor.submit(_process_cell, args) for args in lat_lon_combinations]
-        for fut in as_completed(futures):
-            i, j, mask, weight = fut.result()
-            if mask:
+            if not intersection.empty:
                 inter_mask[i, j] = True
-                weights_data[i, j] = weight
+                # Calculate weight directly without intermediate storage
+                weights_data[i, j] = polygon_area(geo_shape=poly_from_multipoly(intersection.loc[0, "geometry"])) / ws_area
+        except KeyError as e:
+            logging.warning(f"Missing geometry key at lat={lat}, lon={lon}: {e}")
+            continue
+        except Exception as e:
+            logging.exception(f"Error processing grid cell at lat={lat}, lon={lon}: {e}")
+            continue
 
 
     # Create DataArrays efficiently
