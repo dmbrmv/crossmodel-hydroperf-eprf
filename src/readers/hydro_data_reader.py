@@ -6,6 +6,8 @@ for machine learning models.
 """
 
 from pathlib import Path
+from concurrent.futures import ProcessPoolExecutor, as_completed
+import os
 
 import geopandas as gpd
 import pandas as pd
@@ -110,6 +112,7 @@ def data_creator(
     meteo_dir: Path,
     hydro_dir: Path,
     temp_dir: Path | None = None,
+    n_workers: int | None = None,
 ) -> pd.DataFrame:
     """Create a DataFrame with static and dynamic features.
 
@@ -119,15 +122,24 @@ def data_creator(
         meteo_dir: Path to directory containing meteorological data
         hydro_dir: Path to directory containing hydrological data
         temp_dir: Optional path for temperature files (not used in this function)
+        n_workers: Number of processes for parallel data loading
 
     Returns:
         DataFrame with static and dynamic features, indexed by date and gauge ID
     """
-    pool = []
-    for gid in full_gauges:
-        pool.append(load_one_site(gid, meteo_dir, hydro_dir, temp_dir))
+    if n_workers is None:
+        n_workers = max(1, os.cpu_count() - 1)
 
-    dynamic = pd.concat(pool, ignore_index=True)
+    results = []
+    with ProcessPoolExecutor(max_workers=n_workers) as executor:
+        futures = {
+            executor.submit(load_one_site, gid, meteo_dir, hydro_dir, temp_dir): gid
+            for gid in full_gauges
+        }
+        for fut in as_completed(futures):
+            results.append(fut.result())
+
+    dynamic = pd.concat(results, ignore_index=True)
     dynamic = (
         dynamic.groupby("gauge_id", group_keys=False)
         .apply(add_lags)
