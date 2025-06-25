@@ -33,3 +33,14 @@ class WeightedMSELoss(nn.Module):
     def forward(self, y_hat: torch.Tensor, y: torch.Tensor):
         w = 1 + self.alpha * (y / y.mean())
         return torch.mean(w * (y_hat - y) ** 2)
+
+
+class HuberLoss(nn.Module):
+    """Huber loss combining L1 and L2 behaviour."""
+
+    def __init__(self, delta: float = 1.0) -> None:
+        super().__init__()
+        self.delta = delta
+
+    def forward(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+        return nn.functional.huber_loss(y_hat, y, delta=self.delta)

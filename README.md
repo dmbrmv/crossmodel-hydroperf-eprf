@@ -1,6 +1,6 @@
 # HydroEPRF
 
-HydroEPRF (Hydrological Ensemble Prediction Research Framework) is a modular, extensible Python toolkit for hydrological modeling, data preparation, and performance evaluation. It currently supports CatBoost-based machine learning models and the GR4J hydrological model with Optuna hyperparameter optimization. Planned additions include LSTM, HBV96, and ParFlow model implementations.
+HydroEPRF (Hydrological Ensemble Prediction Research Framework) is a modular, extensible Python toolkit for hydrological modeling, data preparation and performance evaluation. It currently includes CatBoost, GR4J and an LSTM implementation with static catchment attributes. Upcoming modules will add HBV96 and ParFlow models.
 
 ## Features
 
@@ -8,6 +8,8 @@ HydroEPRF (Hydrological Ensemble Prediction Research Framework) is a modular, ex
 - Static feature engineering and selection utilities
 - CatBoost-based regression model with Optuna hyperparameter tuning
 - GR4J model wrapper and optimization scripts
+- LSTM model combining dynamic meteorology with static catchment attributes
+- Robust loss options including NSE, KGE, Weighted MSE and Huber
 - Interactive Jupyter notebooks for model exploration and visualization
 - Logging and reproducibility: fixed random seeds, structured log files
 - Modular architecture: easily add new model types (e.g., LSTM, HBV96, ParFlow)
@@ -206,7 +208,7 @@ python -m src.loaders.load_soil_grids --aoi 70.0 10.0 42.0 45.0 --res_folder dat
 
 - **CatBoost**: Gradient boosting regressor with Optuna tuning. See [CatBoost Model](docs/catboost.md).
 - **GR4J**: Conceptual rainfall–runoff model wrapped in Python. See [GR4J Model](docs/gr4j.md).
-- **LSTM**: Recurrent neural network for sequence forecasting. (Coming soon) See [LSTM Model](docs/lstm.md).
+- **LSTM**: Recurrent neural network with static and dynamic inputs. See [LSTM Model](docs/lstm.md).
 - **HBV96**: Bucket-type hydrological model. (Coming soon) See [HBV96 Model](docs/hbv96.md).
 - **ParFlow**: Distributed hydrologic flow simulator. (Coming soon) See [ParFlow Model](docs/parflow.md).
 
