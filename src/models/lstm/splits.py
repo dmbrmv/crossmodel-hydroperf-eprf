@@ -30,7 +30,6 @@ def rolling_split_fraction(
 
     n_train = int(n_windows * train_frac)
     n_val = int(n_windows * val_frac)
-    n_test = n_windows - n_train - n_val
 
     idx_train: list[int] = []
     idx_val: list[int] = []
