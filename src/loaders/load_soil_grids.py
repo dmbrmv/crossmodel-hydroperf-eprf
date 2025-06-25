@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 SoilGrids Downloader and Reprojector
 
@@ -47,8 +46,35 @@ ALLOWED_PROPERTIES = {
     "silt",
     "soc",
 }
-ALLOWED_DEPTHS = None  # e.g. {"0-5cm", ...}
-ALLOWED_STATS = {"mean"}
+ALLOWED_DEPTHS = None  # e.g. {"0-5cm", "5-15cm", "15-30cm", "30-60cm", "60-100cm", "100-200cm"}
+ALLOWED_STATS = {"mean"}  # e.g. {"mean", "uncertainty", "Q0.05", "Q0.5", "Q0.95"}
+
+full_name_table = {
+    "bdod": "Bulk density of the fine earth fraction (cg/cm³)",
+    "cec": "Cation Exchange Capacity of the soil (mmol(c)/kg)",
+    "cfvo": "Volumetric fraction of coarse fragments (> 2 mm) (cm³/dm³ (vol‰))",
+    "clay": "Proportion of clay particles (< 0.002 mm) in the fine earth fraction (g/kg)",
+    "nitrogen": "Total nitrogen (cg/kg)",
+    "ocd": "Organic carbon density (hg/m³)",
+    "ocs": "Organic carbon stocks (t/ha)",
+    "phh2o": "Soil pH (pHx10)",
+    "sand": "Proportion of sand particles (> 0.05/0.063 mm) in the fine earth fraction (g/kg)",
+    "silt": "Proportion of silt particles (≥ 0.002 mm and ≤ 0.05/0.063 mm) in the fine earth fraction (g/kg)",
+    "soc": "Soil organic carbon content in the fine earth fraction (dg/kg)",
+}
+convertion_table = {
+    "bdod": 100,  # Bulk density in cg/cm³ to kg/dm³
+    "cec": 10,  # Cation Exchange Capacity in mmol(c)/kg to cmol(c)/kg
+    "cfvo": 10,  # Coarse fragments in cm³/dm³ (vol‰) to cm³/100cm³ (vol%)
+    "clay": 10,  # Clay content in g/kg to g/100g%
+    "nitrogen": 100,  # Total nitrogen in cg/kg to g/kg
+    "ocd": 10,  # Organic carbon density in hg/m³ to kg/m³
+    "ocs": 10,  # Organic carbon stocks in t/ha to kg/m²
+    "phh2o": 10,  # Soil pH in pHx10 to pH
+    "sand": 10,  # Sand content in g/kg to g/100g%
+    "silt": 10,  # Silt content in g/kg to g/100g%
+    "soc": 10,  # Soil organic carbon content in dg/kg to g/kg
+}
 
 BASE = "https://files.isric.org/soilgrids/latest/data"
 IGH = "+proj=igh +lat_0=0 +lon_0=0 +datum=WGS84 +units=m +no_defs"

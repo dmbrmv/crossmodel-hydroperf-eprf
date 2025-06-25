@@ -197,3 +197,4 @@ cython_debug/
 data/
 catboost_info/
 images/
+notebooks/checkpoints/
